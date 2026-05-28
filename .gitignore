@@ -1,0 +1,5 @@
+# StatiCrypt intermediate (encrypt.sh cleans this up; safety net if interrupted)
+.brand-kit-baked.html
+# OS / editor
+.DS_Store
+*.swp

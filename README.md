@@ -2,9 +2,17 @@
 
 Team-shared visual canon for the Webprofits design system - the rendered reference for every brand token, typography role, and component (Gellix typography, KPI tiles, charts, tables, sidebar/app-header, the website credibility components, the footer pattern). Mirrors what the [webprofits-brand skill](https://github.com/webprofits/wp-skills/tree/main/global/webprofits-brand) ships.
 
-**Live URL:** https://webprofits.github.io/brand-kit/
+**Live URL:** https://effective-adventure-qje9n4j.pages.github.io/
 
-The Pages site is password-protected (StatiCrypt). Password is the shared team brand password (see 1Password: _WP Brand Kit_). Don't share outside the team.
+(This is a randomised `*.pages.github.io` URL because the repo is private; GitHub assigns these for security and the URL is stable for the life of the repo. Bookmark it.)
+
+Three layers of access:
+
+1. The repo is **private** - only members of the `webprofits` GitHub org can view it.
+2. GitHub Pages on private repos requires **GitHub authentication** - visiting the URL redirects to a GitHub login. You must be signed in to a GitHub account with access to `webprofits/brand-kit`.
+3. The page itself is **StatiCrypt-encrypted** - after auth you'll see a Webprofits-branded password screen. Enter the team brand password to view the kit.
+
+The team password is `WPbrand777` (also stored in 1Password under _WP Brand Kit_). Don't share outside the team.
 
 ## What you'll see
 

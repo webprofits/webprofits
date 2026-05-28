@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
-# Re-bake source/brand-kit.html + source/{design-system,gellix-base64}.css into a
-# self-contained file, then encrypt it with StatiCrypt using the team brand password.
+# Re-bake + re-encrypt the brand kit and overwrite ./index.html.
 #
 #   ./scripts/encrypt.sh <password>
 #
-# Output: index.html (overwritten in repo root). Commit + push to redeploy.
+# Source-of-truth for the plaintext kit is the `webprofits-brand` skill in
+# `webprofits/wp-skills`. This repo holds ONLY the encrypted output, so
+# encrypt.sh expects a local checkout of wp-skills at one of these paths
+# (set $WP_SKILLS to override):
+#   $WP_SKILLS                                     (if set)
+#   ../wp-skills                                   (sibling of this repo)
+#   ../../skills/wp-skills                         (under a Webprofits workspace tree)
 #
 # Requires: python3, staticrypt (npm i -g @robinmoisson/staticrypt).
 
@@ -18,28 +23,42 @@ if [[ -z "$PASS" ]]; then
 fi
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SRC="$ROOT/source/brand-kit.html"
-CSS="$ROOT/source/design-system.css"
-FONTS_B64="$ROOT/source/gellix-base64.css"
+
+# Locate wp-skills checkout
+candidates=("${WP_SKILLS:-}" "$ROOT/../wp-skills" "$ROOT/../../skills/wp-skills")
+WP_SKILLS_DIR=""
+for c in "${candidates[@]}"; do
+  if [[ -n "$c" && -d "$c/global/webprofits-brand" ]]; then WP_SKILLS_DIR="$c"; break; fi
+done
+if [[ -z "$WP_SKILLS_DIR" ]]; then
+  echo "ERROR: couldn't find wp-skills/global/webprofits-brand." >&2
+  echo "       checkout webprofits/wp-skills locally and either:" >&2
+  echo "       - place it next to this repo (../wp-skills), OR" >&2
+  echo "       - export WP_SKILLS=/path/to/wp-skills" >&2
+  exit 2
+fi
+
+SKILL="$WP_SKILLS_DIR/global/webprofits-brand"
+SRC="$SKILL/examples/brand-kit.html"
+CSS="$SKILL/assets/design-system.css"
+FONTS_B64="$SKILL/assets/fonts/gellix-base64.css"
 TEMPLATE="$ROOT/scripts/encrypt/template.html"
-BAKED="$ROOT/.brand-kit-baked.html"
-OUT="$ROOT/index.html"
 
 for f in "$SRC" "$CSS" "$FONTS_B64" "$TEMPLATE"; do
   [[ -f "$f" ]] || { echo "missing: $f" >&2; exit 1; }
 done
 
-# Inline the two linked CSS files (replace <link rel="stylesheet" href="../assets/...">
-# with a <style> block containing the file's contents).
+echo "wp-skills: $WP_SKILLS_DIR"
+
+# Bake: inline the two linked CSS files (fonts FIRST so @font-face is declared
+# before any rule that uses Gellix).
+BAKED="$ROOT/.brand-kit-baked.html"
 python3 - <<PY
 from pathlib import Path
 import sys
-
 src   = Path("$SRC").read_text()
 ds    = Path("$CSS").read_text()
 faces = Path("$FONTS_B64").read_text()
-
-# Fonts MUST come before design-system so @font-face is declared before any rule using Gellix.
 src = src.replace(
     '<link rel="stylesheet" href="../assets/fonts/gellix-base64.css">',
     f'<style id="gellix-faces-base64">\n{faces}\n</style>',
@@ -48,24 +67,19 @@ src = src.replace(
     '<link rel="stylesheet" href="../assets/design-system.css">',
     f'<style id="design-system">\n{ds}\n</style>',
 )
-
-# Sanity: no remaining ../assets paths.
 if "../assets" in src:
-    print("ERROR: ../assets refs still present after bake", file=sys.stderr)
-    sys.exit(2)
-
+    print("ERROR: ../assets refs still present after bake", file=sys.stderr); sys.exit(2)
 Path("$BAKED").write_text(src)
 print(f"baked: {len(src)//1024} KB")
 PY
 
-# Encrypt the baked file with the team password.
+# Encrypt
 TMPDIR="$(mktemp -d)"
 staticrypt "$BAKED" --password "$PASS" \
-  --template "$TEMPLATE" \
-  --short --noremember \
+  --template "$TEMPLATE" --short --noremember \
   -d "$TMPDIR" >/dev/null
-mv "$TMPDIR/$(basename "$BAKED")" "$OUT"
+mv "$TMPDIR/$(basename "$BAKED")" "$ROOT/index.html"
 rm -rf "$TMPDIR" "$BAKED"
 
-echo "encrypted -> $OUT ($(wc -c < "$OUT") bytes)"
+echo "encrypted -> $ROOT/index.html ($(wc -c < "$ROOT/index.html") bytes)"
 echo "next: git commit -am 'Refresh brand kit' && git push"

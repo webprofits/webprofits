@@ -1,0 +1,22 @@
+# gitleaks config. Extends the default rules. Webhook URLs are a warning in the security audit, never a commit blocker.
+[extend]
+useDefault = true
+disabledRules = ["slack-webhook-url", "microsoft-teams-webhook"]
+
+[[rules]]
+id = "shopify-admin-token"
+description = "Shopify Admin API access token"
+regex = '''shpat_[a-f0-9]{32}'''
+
+[[rules]]
+id = "supabase-secret-key"
+description = "Supabase sb_secret_ key"
+regex = '''sb_secret_[A-Za-z0-9_-]{20,}'''
+
+[allowlist]
+description = "StatiCrypt encrypted payloads and embedded assets are not secrets"
+regexes = [
+  '''staticryptEncryptedMsgUniqueVariableName''',
+  '''data:font/woff2;base64,''',
+  '''data:image/[a-z]+;base64,''',
+]

@@ -3,3 +3,25 @@
 # OS / editor
 .DS_Store
 *.swp
+.tmp/
+
+# security audit 2026-09-27: secret and local-config patterns
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+!.env.dist
+!.env.tpl
+*.key
+*.pem
+*.p12
+credentials.json
+service-account*.json
+*-credentials.json
+secrets/
+.claude/settings.local.json
+CLAUDE.local.md
+node_modules/
+__pycache__/
+*.log

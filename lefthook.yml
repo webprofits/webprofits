@@ -1,0 +1,10 @@
+# Pre-commit secret gate. Install once with: lefthook install
+# gitleaks scans the staged diff with the rules in .gitleaks.toml. The second command keeps
+# the machine-wide scanner (~/.git-template/hooks/secret-scan.sh) in the chain when it exists.
+pre-commit:
+  parallel: false
+  commands:
+    gitleaks:
+      run: gitleaks git --staged --redact --config .gitleaks.toml
+    secret-scan:
+      run: sh -c '[ -x ~/.git-template/hooks/secret-scan.sh ] && ~/.git-template/hooks/secret-scan.sh staged || true'

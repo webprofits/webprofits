@@ -6,7 +6,7 @@ Team-shared visual canon for the Webprofits design system - the rendered referen
 
 This is a **public** Pages site, but every visitor lands on a Webprofits-branded StatiCrypt password screen first. Enter the team brand password to view the kit.
 
-**Password:** in 1Password only (Employee vault, item "Webprofits brand kit page - password"; rotated 2026-09-28 after it was written here). Never write it in this repo. Don't share outside the team.
+**Password:** in 1Password only (Shared vault, item "Webprofits brand kit page - password"; rotated 2026-09-28 after it was written here). Never write it in this repo. Don't share outside the team.
 
 ## What you'll see
 
@@ -39,7 +39,7 @@ npm i -g @robinmoisson/staticrypt
 Then from this repo:
 
 ```bash
-./scripts/encrypt.sh "$(op read 'op://Employee/Webprofits brand kit page - password/password')"
+./scripts/encrypt.sh "$(op read 'op://Shared/Webprofits brand kit page - password/password')"
 git commit -am "Refresh brand kit"
 git push
 ```
